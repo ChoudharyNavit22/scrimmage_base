@@ -72,6 +72,8 @@ class MotorSchemas : public scrimmage::Autonomy {
     std::list<motor_schemas::BehaviorBasePtr> current_behaviors_;
 
     scrimmage_proto::ShapePtr line_shape_;
+    bool noisy_state_set_ = false;
+    std::string noisy_state_;
 };
 } // namespace autonomy
 } // namespace scrimmage

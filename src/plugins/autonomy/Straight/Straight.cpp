@@ -141,9 +141,12 @@ void Straight::init(std::map<std::string, std::string> &params) {
     auto bd_cb = [&](auto &msg) {boundary_ = sci::Boundary::make_boundary(msg->data);};
     subscribe<sp::Shape>("GlobalNetwork", "Boundary", bd_cb);
 
+    // funtion listening to Noisy State Sensor Plugin
+
     auto state_cb = [&](auto &msg) {
         noisy_state_set_ = true;
         noisy_state_ = msg->data;
+        printf("test\n");
     };
     subscribe<StateWithCovariance>("LocalNetwork", "StateWithCovariance", state_cb);
 

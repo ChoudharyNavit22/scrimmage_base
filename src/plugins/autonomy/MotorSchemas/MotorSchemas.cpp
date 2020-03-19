@@ -46,6 +46,12 @@
 #include <scrimmage/proto/ProtoConversions.h>
 #include <scrimmage/plugin_manager/RegisterPlugin.h>
 #include <scrimmage/plugin_manager/PluginManager.h>
+#include <scrimmage/proto/State.pb.h>
+#include <scrimmage/msgs/Event.pb.h>
+#include <scrimmage/pubsub/Message.h>
+#include <scrimmage/pubsub/Subscriber.h>
+#include <scrimmage/pubsub/Publisher.h>
+#include <scrimmage/sensor/Sensor.h>
 
 #include <scrimmage/plugins/autonomy/MotorSchemas/MotorSchemas.h>
 #include <scrimmage/plugins/autonomy/MotorSchemas/BehaviorBase.h>
@@ -54,9 +60,12 @@
 #include <string>
 #include <cmath>
 #include <cfloat>
+#include <vector>
+#include <array>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/spirit/include/karma.hpp>
 
 using std::cout;
 using std::endl;
@@ -64,6 +73,7 @@ using std::endl;
 namespace sc = scrimmage;
 namespace sp = scrimmage_proto;
 namespace ms = scrimmage::autonomy::motor_schemas;
+namespace karma = boost::spirit::karma;
 
 REGISTER_PLUGIN(scrimmage::Autonomy,
                 scrimmage::autonomy::MotorSchemas,
@@ -90,7 +100,6 @@ void MotorSchemas::init(std::map<std::string, std::string> &params) {
     std::string network_name = sc::get<std::string>("network_name", params, "LocalNetwork");
     auto state_callback = [&] (scrimmage::MessagePtr<std::string> msg) {
         current_state_ = msg->data;
-
         // Get the currently running behaviors
         auto behavior_list = behaviors_.find(current_state_);
         if (behavior_list != behaviors_.end()) {
@@ -148,6 +157,13 @@ void MotorSchemas::init(std::map<std::string, std::string> &params) {
     output_vel_x_idx_ = vars_.declare(VariableIO::Type::velocity_x, VariableIO::Direction::Out);
     output_vel_y_idx_ = vars_.declare(VariableIO::Type::velocity_y, VariableIO::Direction::Out);
     output_vel_z_idx_ = vars_.declare(VariableIO::Type::velocity_z, VariableIO::Direction::Out);
+    
+    auto state_cb = [&](auto &msg) {
+        noisy_state_set_ = true;
+        noisy_state_ = msg->data;
+    };
+
+    subscribe<std::string>("GlobalNetwork", "MyNoisyState", state_cb);
 }
 
 bool MotorSchemas::step_autonomy(double t, double dt) {
