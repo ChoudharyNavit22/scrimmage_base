@@ -164,6 +164,14 @@ void MotorSchemas::init(std::map<std::string, std::string> &params) {
     };
 
     subscribe<std::string>("GlobalNetwork", "MyNoisyState", state_cb);
+
+    // receive wall coordinates
+    auto avoid_walls_cb = [&](auto &msg) {
+        wall_state_set = true;
+        wall_state_ = msg->data;
+    };
+
+    subscribe<Eigen::Vector3d>("GlobalNetwork", "AvoidWallsState", avoid_walls_cb);
 }
 
 bool MotorSchemas::step_autonomy(double t, double dt) {
@@ -228,6 +236,8 @@ bool MotorSchemas::step_autonomy(double t, double dt) {
     if (vel_result.hasNaN()) {
         vel_result = state_->quat() * Eigen::Vector3d::UnitX() * max_speed_;
     }
+
+    vel_result = vel_result + wall_state_;
 
     ///////////////////////////////////////////////////////////////////////////
     // Publish the resultant velocity vector or

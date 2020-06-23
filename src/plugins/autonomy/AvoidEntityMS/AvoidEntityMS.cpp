@@ -65,6 +65,7 @@ void AvoidEntityMS::init(std::map<std::string, std::string> &params) {
     sphere_of_influence_ = sc::get<double>("sphere_of_influence", params, 10);
     minimum_range_ = sc::get<double>("minimum_range", params, 5);
     avoid_non_team_ = sc::get<bool>("avoid_non_team", params, true);
+    avoid_team_ = sc::get<bool>("avoid_team", params, true);
     show_shapes_ = sc::get<bool>("show_shapes", params, false);
 
     configure_contacts(params);
@@ -75,6 +76,12 @@ void AvoidEntityMS::avoidance_vectors(ContactMap &contacts,
     for (auto it = contacts.begin(); it != contacts.end(); it++) {
         // Ignore own position / id
         if (it->second.id().id() == parent_->id().id()) {
+            continue;
+        }
+        // This section checks for the team id of the contact and 
+        // avoids the contact if the team id of the contact is same
+        if (!avoid_team_ &&
+            it->second.id().team_id() == parent_->id().team_id()) {
             continue;
         }
 

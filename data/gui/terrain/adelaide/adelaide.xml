@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="http://gtri.gatech.edu"?>
+<params>
+  <polydata>adelaide.vtk</polydata>
+  <texture>grey.jpeg</texture>
+  <system>UTM</system>
+  <hemisphere>south</hemisphere>
+  <zone>54</zone>
+  <enable_grid>false</enable_grid>
+</params>

@@ -36,7 +36,12 @@
 #include <scrimmage/autonomy/Autonomy.h>
 
 #include <scrimmage/plugins/sensor/RayTrace/RayTrace.h>
+#include <scrimmage/pubsub/Publisher.h>
+#include <scrimmage/entity/Entity.h>
+#include <scrimmage/entity/Contact.h>
 
+#include <random>
+#include <vector>
 #include <map>
 #include <string>
 
@@ -53,6 +58,7 @@ class AvoidWalls : public scrimmage::Autonomy {
 
     uint8_t heading_idx_ = 0;
     uint8_t speed_idx_ = 0;
+    PublisherPtr pub_;
 };
 } // namespace autonomy
 } // namespace scrimmage

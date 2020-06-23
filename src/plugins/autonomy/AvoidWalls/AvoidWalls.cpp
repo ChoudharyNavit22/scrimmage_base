@@ -38,6 +38,15 @@
 #include <scrimmage/plugins/autonomy/AvoidWalls/AvoidWalls.h>
 #include <scrimmage/plugins/sensor/RayTrace/RayTrace.h>
 #include <scrimmage/pubsub/Subscriber.h>
+#include <scrimmage/pubsub/Message.h>
+#include <scrimmage/proto/State.pb.h>
+#include <scrimmage/common/Random.h>
+#include <scrimmage/math/Quaternion.h>
+
+#include <iostream>
+#include <limits>
+
+namespace sc = scrimmage;
 
 REGISTER_PLUGIN(scrimmage::Autonomy, scrimmage::autonomy::AvoidWalls, AvoidWalls_plugin)
 
@@ -51,13 +60,14 @@ void AvoidWalls::init(std::map<std::string, std::string> &params) {
     auto pc_cb = [&] (scrimmage::MessagePtr<sensor::RayTrace::PointCloud> msg) {
         point_cloud_ = msg->data;
     };
-    subscribe<sensor::RayTrace::PointCloud>("LocalNetwork", "RayTrace/pointcloud", pc_cb);
+    subscribe<sensor::RayTrace::PointCloud>("LocalNetwork", "RayTrace0/pointcloud", pc_cb);
 
     heading_idx_ = vars_.declare(VariableIO::Type::desired_heading, VariableIO::Direction::Out);
     speed_idx_ = vars_.declare(VariableIO::Type::desired_speed, VariableIO::Direction::Out);
 
     vars_.output(heading_idx_, state_->quat().yaw());
     vars_.output(speed_idx_, initial_speed);
+    pub_ = advertise("GlobalNetwork", "AvoidWallsState");
 }
 
 bool AvoidWalls::step_autonomy(double t, double dt) {
@@ -108,10 +118,21 @@ bool AvoidWalls::step_autonomy(double t, double dt) {
 
         const double heading = atan2(dir(1), dir(0));
 
-        vars_.output(heading_idx_, heading);
-        vars_.output(speed_idx_, 10);
+        // send wall coordinates
+        auto msg = std::make_shared<sc::Message<Eigen::Vector3d>>();
+        msg->data = O_vec;
+        // auto msg = std::make_shared<sc::Message<std::string>>();
+        // msg->data = "test data";
+        pub_->publish(msg);
+
+
+        //vars_.output(heading_idx_, heading);
+        //vars_.output(speed_idx_, 10);
     } else {
-        vars_.output(heading_idx_, state_->quat().yaw());
+        //vars_.output(heading_idx_, state_->quat().yaw());
+        auto msg = std::make_shared<sc::Message<Eigen::Vector3d>>();
+        msg->data = Eigen::Vector3d(0, 0, 0);
+        pub_->publish(msg);
     }
 
     return true;

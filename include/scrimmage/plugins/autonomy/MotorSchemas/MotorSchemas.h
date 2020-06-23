@@ -74,6 +74,10 @@ class MotorSchemas : public scrimmage::Autonomy {
     scrimmage_proto::ShapePtr line_shape_;
     bool noisy_state_set_ = false;
     std::string noisy_state_;
+    bool wall_state_set = false;
+    Eigen::Vector3d wall_state_;
+    std::string wall_state_demo_;
+    
 };
 } // namespace autonomy
 } // namespace scrimmage
